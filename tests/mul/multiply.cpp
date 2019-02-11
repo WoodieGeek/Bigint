@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "../bigint.hpp"
+#include "../../bigint.hpp"
 
 int main() {
     freopen("in", "r", stdin);
@@ -7,11 +7,11 @@ int main() {
     int OK = 0, total = 0;
     while (std::cin >> sa >> sb >> sc) {
         total++;
-        Bigint a(sa), b(sb), c(sc), c1(a + b);
+        Bigint a(sa), b(sb), c(sc), c1(a * b);
         if (c1 == c) 
             OK++;
         else {
-            std::cout << sa << " + " << sb << std::endl;
+            std::cout << sa << " * " << sb << std::endl;
             std::cout << "expected: " << sc << std::endl;
             std::cout << "founded:  " << c1 << std::endl;
         }
