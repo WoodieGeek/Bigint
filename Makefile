@@ -1,3 +1,5 @@
+clear : ex 
+	rm .main.o .bigint.o .run
 ex: link
 	./.run
 link: main bigint

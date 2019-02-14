@@ -158,24 +158,38 @@ Bigint& Bigint::operator *= (const Bigint& rhs) {
 }
 
 void Bigint::fft(std::vector<std::complex<double>>& a, bool invert) {
-    if (a.size() == 1)
-        return;
-    std::vector<std::complex<double>> a0(a.size() / 2), a1(a.size() / 2);
-    for (size_t i = 0, j = 0; i < a.size(); i += 2, j++) {
-        a0[j] = a[i];
-        a1[j] = a[i + 1];
+    size_t lg = 0, n = a.size();
+    while ((1 << lg) < n)
+        lg++;
+    auto reverse_bits = [&](size_t x) -> size_t {
+        size_t result = 0;
+        for (size_t i = 0; i < lg; i++) 
+            if (x & (1 << i))
+                result |= 1 << (lg - 1 - i);
+        return result;
+    };
+    for (size_t i = 0; i < n; i++) {
+        size_t j = reverse_bits(i);
+        if (i < j)
+            std::swap(a[i], a[j]);
     }
-    fft(a0, invert);
-    fft(a1, invert);
-    double ang = 2.0 * M_PI / a.size() * (invert ? -1 : 1);
-    std::complex<double> w(1), wn(std::cos(ang), std::sin(ang));
-    for (size_t i = 0; i < a.size() / 2; i++) {
-        a[i] = a0[i] + w * a1[i];
-        a[i + a.size() / 2] = a0[i] - w * a1[i];
-        w *= wn;
-        if (invert)
-            a[i] /= 2.0, a[i + a.size() / 2] /= 2.0;
+    for (size_t len = 2; len <= n; len *= 2) {
+        double ang = 2.0 * M_PI / len * (invert ? -1 : 1);
+        std::complex<double>  wn(std::cos(ang), std::sin(ang));
+        for (size_t i = 0; i < n; i += len) {
+            std::complex<double> w(1);
+            for (size_t j = 0; j < len / 2; j++) {
+                std::complex<double> u  = a[i + j], v = a[i + j + len / 2] * w;
+                a[i + j] = u + v;
+                a[i + j + len / 2] = u - v;
+                w *= wn;
+            }
+        }
+
     }
+    if (invert) 
+        for (size_t i = 0; i < n; i++) 
+            a[i] /= n;
 }
 
 Bigint& Bigint::operator -= (const Bigint& rhs) {

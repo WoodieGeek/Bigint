@@ -2,6 +2,7 @@
 #include "../../bigint.hpp"
 
 int main() {
+    time_t res = std::time(nullptr);
     freopen("in", "r", stdin);
     std::string sa, sb, sc;
     int OK = 0, total = 0;
@@ -18,5 +19,6 @@ int main() {
             
     }
     printf("Total = %d\nOK = %d\n", total, OK);
+    std::cout << "Time: " << std::time(nullptr) - res << std::endl;
     return 0;
 }
