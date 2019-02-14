@@ -1,11 +1,10 @@
 #include <bits/stdc++.h>
 #include "bigint.hpp"
+using namespace std;
 
 int main() {
-    Bigint a(-11);
-    Bigint b(9);
-    Bigint c = a * b;
-    std::cout <<"ans\n";
-    std::cout << c << std::endl; 
+    Bigint a(5);
+    Bigint b(100);
+    cout << a + a * b - b;
     return 0;
 }

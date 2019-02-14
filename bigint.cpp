@@ -17,8 +17,7 @@ Bigint::Bigint(int x) {
         additionalCode();
 }
 
-Bigint::Bigint(const Bigint& x) {
-    data_ = x.data_;
+Bigint::Bigint(const Bigint& x) : data_(x.data_) {
 }
 
 Bigint::Bigint(const std::string& s) {
@@ -31,7 +30,7 @@ Bigint::Bigint(const std::string& s) {
         additionalCode();
 }
 
-void Bigint::additionalCode() {
+void Bigint::additionalCode() const {
     for (size_t i = 0; i < data_.size(); i++) {
         data_[i] = (BASE - 1) - data_[i];
     }
@@ -73,7 +72,7 @@ Bigint& Bigint::operator += (const Bigint& rhs) {
     return *this;
 }
 
-std::ostream& operator << (std::ostream& os, Bigint& rhs) {
+std::ostream& operator << (std::ostream& os, const Bigint& rhs) {
     bool sign = rhs.data_.back() > rhs.BASE / 2;
     if (sign) {
         printf("-");
@@ -109,13 +108,13 @@ bool Bigint::operator == (const Bigint& rhs) const {
     return true;
 }
 
-Bigint Bigint::operator* (Bigint& rhs) {
+Bigint Bigint::operator * (const Bigint& rhs) const {
     Bigint result(*this);
     result *= rhs;
     return result;
 }
 
-Bigint& Bigint::operator *= (Bigint& rhs) {
+Bigint& Bigint::operator *= (const Bigint& rhs) {
     bool signLeft = data_.back() >= BASE / 2;
     bool signRIght = rhs.data_.back() >= BASE / 2;
     if (signLeft)
@@ -123,7 +122,7 @@ Bigint& Bigint::operator *= (Bigint& rhs) {
     if (signRIght)
         rhs.additionalCode();
     size_t n = 1;
-    while (n <= std::max(data_.size(), rhs.data_.size()))
+    while (n < std::max(data_.size(), rhs.data_.size()))
         n <<= 1;
     n <<= 1;
     std::vector<std::complex<double>> left(data_.begin(), data_.end());
@@ -133,14 +132,13 @@ Bigint& Bigint::operator *= (Bigint& rhs) {
     fft(left, false);
     fft(right, false);
     data_.resize(n);
-    std::vector<std::complex<double>> result(n);
-    for (size_t i = 0; i < result.size(); i++) 
-        result[i] = left[i] * right[i];
-    fft(result, true);
+    for (size_t i = 0; i < left.size(); i++) 
+        left[i] *= right[i];
+    fft(left, true);
     data_.resize(n);
     int sum = 0;
     for (size_t i = 0; i < data_.size(); i++) {
-        data_[i] = sum + (int)(result[i].real() + 0.5);
+        data_[i] = sum + (int)(left[i].real() + 0.5);
         sum  = data_[i] / BASE;
         data_[i] %= BASE;
     }
@@ -148,8 +146,12 @@ Bigint& Bigint::operator *= (Bigint& rhs) {
         data_.push_back(sum % BASE);
         sum /= BASE;
     }
-    if (data_.back())
+    while (!data_.empty() && !data_.back())
+        data_.pop_back();
+
+    if (data_.empty() || data_.back())
         data_.push_back(0);
+
     if (signLeft ^ signRIght)
         additionalCode();
     return *this;
@@ -174,6 +176,117 @@ void Bigint::fft(std::vector<std::complex<double>>& a, bool invert) {
         if (invert)
             a[i] /= 2.0, a[i + a.size() / 2] /= 2.0;
     }
+}
+
+Bigint& Bigint::operator -= (const Bigint& rhs) {
+    rhs.additionalCode();
+    *this += rhs;
+    rhs.additionalCode();
+    return *this;
+}
+
+Bigint Bigint::operator - (const Bigint& rhs) const {
+    Bigint result(*this);
+    result -= rhs;
+    return result;
+}
+
+Bigint Bigint::operator *= (int x) {
+    Bigint X(x);
+    *this *= X;
+    return *this;
+}
+
+Bigint Bigint::operator * (int x) const {
+    Bigint X(x);
+    X *= *this;
+    return X;
+}
+
+Bigint& Bigint::operator += (int x) {
+    Bigint X(x);
+    *this += X;
+    return *this;
+}
+
+Bigint Bigint::operator + (int x) const  {
+    Bigint result(x);
+    result += *this;
+    return result;
+}
+
+bool Bigint::operator < (const Bigint& rhs) const {
+    Bigint delta(*this - rhs);
+    return delta.data_.back() > BASE / 2;
+}
+
+bool Bigint::operator != (const Bigint& rhs) const {
+    return !(*this == rhs);
+}
+
+bool Bigint::operator > (const Bigint& rhs) const {
+    return !(*this < rhs) && (*this != rhs);
+}
+
+bool Bigint::operator >= (const Bigint& rhs) const {
+    return !(*this < rhs);
+}
+
+bool Bigint::operator <= (const Bigint& rhs) const {
+    return !(*this > rhs);
+}
+
+double Bigint::operator / (Bigint& rhs) {
+    bool signLeft = data_.back() > BASE / 2;
+    bool signRight = rhs.data_.back() > BASE / 2;
+    if (signLeft)
+        additionalCode();
+    if (signRight)
+        rhs.additionalCode();
+    std::string ans;
+    Bigint current;
+    for (auto digit = data_.rbegin(); digit != data_.rend(); ++digit) {
+        current *= BASE;
+        current += *digit;
+        if (current >= rhs) {
+            for (int i = BASE - 1; i >= 1; i--) {
+                if (rhs * i <= current) {
+                    Bigint tmp = rhs * i;
+                    ans.push_back('0' + i);
+                    current -= tmp;
+                    break;
+                }
+            }
+        }
+        else 
+            ans.push_back('0');
+    }
+    ans.push_back('.');
+    for (size_t iteration = 0; iteration < PRECISION;) { 
+        if (current == 0)
+            break;
+        while (current < rhs) {
+            current *= 10;
+            ans.push_back('0');
+            iteration++; 
+        }
+        ans.pop_back();
+        for (int digit = BASE - 1; digit >= 1; digit--)
+            if (rhs * digit <= current) {
+                ans.push_back('0' + digit);
+                Bigint tmp = rhs * digit;
+                current -= tmp;
+                break;
+            }
+    }
+    if (signLeft)
+        additionalCode();
+    if (signRight)
+        rhs.additionalCode();
+    double d = std::stod(ans);
+    if (signLeft ^ signRight)
+        d *= -1;
+    return d;
 }
 
 

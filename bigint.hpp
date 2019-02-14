@@ -22,16 +22,29 @@ public:
     Bigint(const std::string& s);
     Bigint operator + (const Bigint& rhs) const;
     Bigint& operator += (const Bigint& rhs);
-    Bigint operator * (Bigint& ths);
-    Bigint& operator *= (Bigint& rhs);
+    Bigint operator + (int rhs) const;
+    Bigint& operator += (int rhs);
+    Bigint operator * (const Bigint& ths) const;
+    Bigint& operator *= (const Bigint& rhs);
+    Bigint operator * (int x) const;
+    Bigint operator *= (int x);
+    Bigint operator - (const Bigint& rhs) const;
+    Bigint& operator -= (const Bigint& rhs);
     bool operator == (const Bigint& rhs) const;
-    friend std::ostream& operator << (std::ostream& os, Bigint& rhs);
+    bool operator < (const Bigint& rhs) const;
+    bool operator > (const Bigint& rhs) const;
+    bool operator >= (const Bigint& rhs) const;
+    bool operator <= (const Bigint& rhs) const;
+    bool operator != (const Bigint& rhs) const;
+    double operator / (Bigint& rhs);
+    friend std::ostream& operator << (std::ostream& os, const Bigint& rhs);
 private:
-    void additionalCode();
+    void additionalCode() const;
     void fft(std::vector<std::complex<double>>& a, bool invert);
 private:
-    std::vector<int> data_;
+    mutable std::vector<int> data_;
     int BASE = 10;
+    size_t PRECISION = 20;
 };
 
 #endif
