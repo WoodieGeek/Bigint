@@ -20,6 +20,9 @@ Bigint::Bigint(int x) {
 Bigint::Bigint(const Bigint& x) : data_(x.data_) {
 }
 
+Bigint::Bigint(Bigint&& x) : data_(std::move(x.data_)) {
+}
+
 Bigint::Bigint(const std::string& s) {
     bool sign = s[0] == '-';
     data_.reserve(s.size());
@@ -28,6 +31,16 @@ Bigint::Bigint(const std::string& s) {
     data_.push_back(0);
     if (sign)
         additionalCode();
+}
+
+Bigint& Bigint::operator = (const Bigint& rhs) {
+    data_ = rhs.data_;
+    return *this;
+}
+
+Bigint& Bigint::operator = (Bigint&& rhs) {
+    data_ = std::move(rhs.data_);
+    return *this;
 }
 
 void Bigint::additionalCode() const {
@@ -250,7 +263,7 @@ bool Bigint::operator <= (const Bigint& rhs) const {
     return !(*this > rhs);
 }
 
-double Bigint::operator / (Bigint& rhs) {
+double Bigint::devide_to (const Bigint& rhs) {
     bool signLeft = data_.back() > BASE / 2;
     bool signRight = rhs.data_.back() > BASE / 2;
     if (signLeft)
@@ -280,7 +293,7 @@ double Bigint::operator / (Bigint& rhs) {
         if (current == 0)
             break;
         while (current < rhs) {
-            current *= 10;
+            current *= BASE;
             ans.push_back('0');
             iteration++; 
         }
@@ -302,6 +315,45 @@ double Bigint::operator / (Bigint& rhs) {
         d *= -1;
     return d;
 }
+
+Bigint Bigint::operator / (const Bigint& rhs) const {
+    bool signLeft = data_.back() > BASE / 2;
+    bool signRight = rhs.data_.back() > BASE / 2;
+    if (signLeft)
+        additionalCode();
+    if (signRight)
+        rhs.additionalCode();
+    std::string ans;
+    Bigint current;
+    for (auto digit = data_.rbegin(); digit != data_.rend(); ++digit) {
+        current *= BASE;
+        current += *digit;
+        if (current >= rhs) {
+            for (int i = BASE - 1; i >= 1; i--) {
+                if (rhs * i <= current) {
+                    Bigint tmp = rhs * i;
+                    ans.push_back('0' + i);
+                    current -= tmp;
+                    break;
+                }
+            }
+        }
+        else 
+            ans.push_back('0');
+    }
+    return Bigint(ans);
+}
+
+Bigint Bigint::operator % (Bigint& rhs) {
+    return *this - *this / rhs * rhs;;
+}
+
+Bigint& Bigint::operator /= (const Bigint& rhs) {
+    Bigint result = *this / rhs;
+    *this = std::move(result);
+    return *this;
+}
+
 
 
 

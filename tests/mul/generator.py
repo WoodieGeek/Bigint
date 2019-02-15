@@ -5,18 +5,26 @@ def rand():
 
 file = open('in', 'w');
 
+def operation(a, b):
+    return a * b;
+
 def create_test(x):
-    a = 1
-    b = 1
+    a = str(rand() % 9 + 1)
+    b = str(rand() % 9 + 1)
     for j in range(x):
-        a = a * 10 + rand()
-        b = b * 10 + rand()
+        a += str(rand())
+        b += str(rand())
+    a = int(a)
+    b = int(b)
     if rand() % 2 == 0:
         a = a * -1;
     if rand() % 2 == 0:
         b = b * -1;
-    c = a * b
+    c = operation(a, b)
     file.write(str(a) + " " + str(b) + " " + str(c) + "\n")
+
+# custom
+file.write("0 0 0\n")
 
 # small
 for i in range(10): 

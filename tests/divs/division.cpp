@@ -11,7 +11,7 @@ int main() {
     while (std::cin >> sa >> sb >> sc) {
         total++;
         Bigint a(sa), b(sb), c(sc);
-        double c1 = a / b;
+        double c1 = a.devide_to(b);
         if (abs(c1 - std::stod(sc)) < E)
             OK++;
         else {

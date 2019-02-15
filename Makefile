@@ -7,5 +7,5 @@ link: main bigint
 main:
 	g++ -std=c++17 -c -w -o .main.o main.cpp
 bigint: bigint.cpp bigint.hpp
-	g++ -std=c++17 -c -w -o .bigint.o bigint.cpp
+	g++ -std=c++17 -c -w -o .bigint.o bigint.cpp 
 

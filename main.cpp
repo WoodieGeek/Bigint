@@ -3,8 +3,8 @@
 using namespace std;
 
 int main() {
-    Bigint a(50);
-    Bigint b(10);
-    cout << a * b;
+    Bigint a(9);
+    Bigint b(5);
+    cout << a.devide_to(b) << endl;
     return 0;
 }
